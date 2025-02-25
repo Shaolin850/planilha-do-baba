@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOSSO BABA</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <img src="https://cdn-icons-png.flaticon.com/512/5213/5213872.png" alt="Ícone de bola" style="width: 30px; vertical-align: middle;">
+            NOSSO BABA
+            <img src="https://cdn-icons-png.flaticon.com/512/5213/5213872.png" alt="Ícone de bola" style="width: 30px; vertical-align: middle;">
+        </h1>
+        <p id="datetime"></p>
+
+        <h2>Lista de Associados</h2>
+        <textarea id="associados" placeholder="Digite os associados aqui..." oninput="numerarAssociados()"></textarea>
+        <pre id="associadosNumerados"></pre>
+
+        <h2>Tabela de Times</h2>
+        <table>
+            <tr>
+                <th>TIME 1</th>
+                <th>TIME 2</th>
+                <th>TIME 3</th>
+            </tr>
+            <tr>
+                <td><textarea id="time1"></textarea></td>
+                <td><textarea id="time2"></textarea></td>
+                <td><textarea id="time3"></textarea></td>
+            </tr>
+        </table>
+
+        <h2>Reservas</h2>
+        <textarea id="reservas" placeholder="Digite os reservas aqui..." oninput="numerarReservas()"></textarea>
+        <pre id="reservasNumeradas"></pre>
+
+        <h2>Cartões</h2>
+        <textarea id="cartoes"></textarea>
+
+        <h2>Observações</h2>
+        <textarea id="observacoes"></textarea>
+
+        <div class="pagamento">
+            <label>Pag. do dia:</label>
+            <input type="text" id="pagamento">
+            <label>Saldo Anterior:</label> 
+            <input type="text" id="saldo_anterior">
+        </div>
+
+        <button onclick="compartilharWhatsApp()">Compartilhar no WhatsApp</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
