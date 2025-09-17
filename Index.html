@@ -137,6 +137,7 @@
           <div class="card-actions">
             <input type="text" id="filtroAssociados" class="input" placeholder="Buscar por nome, posição ou telefone...">
             <button class="btn" data-open="#modalAssociado"><span class="material-symbols-rounded">person_add</span> Adicionar</button>
+            <button class="btn" id="btnSyncNow"><span class="material-symbols-rounded">sync</span> Sincronizar agora</button>
             <button class="btn outline" id="btnExportAssociadosCSV"><span class="material-symbols-rounded">table</span> Exportar CSV</button>
           </div>
         </div>
@@ -183,7 +184,7 @@
       </div>
     </section>
 
-    <!-- RESERVAS -->
+    <!-- RESERVAS (agendamentos de quadra/campo) -->
     <section id="reservas" class="panel">
       <div class="card">
         <div class="card-head">
@@ -316,8 +317,14 @@
           <option value="Goleiro">Goleiro</option>
           <option value="Zagueiro">Zagueiro</option>
           <option value="Lateral">Lateral</option>
-          <option value="Meia">Meia</option>
-          <option value="Atacante">Atacante</option>
+          <option value="Líbero">Líbero</option>
+          <option value="Volante">Volante</option>
+          <option value="Meia Lateral">Meia Lateral</option>
+          <option value="Meia Central">Meia Central</option>
+          <option value="Meia Armador">Meia Armador</option>
+          <option value="Ponta">Ponta</option>
+          <option value="Segundo Atacante">Segundo Atacante</option>
+          <option value="Centroavante">Centroavante</option>
           <option value="Outro">Outro</option>
         </select></label>
         <label>Status<select name="status" class="input">
@@ -351,7 +358,15 @@
           <option value="Sub-17">Sub-17</option>
         </select></label>
         <label>Cor do Uniforme<input name="cor" class="input" placeholder="Ex: Azul/Branco"/></label>
-        <label>Jogadores (separe por vírgula)<textarea name="jogadores" class="input" rows="4" placeholder="Ex: João, Pedro, Lucas..."></textarea></label>
+
+        <label>Jogadores (separe por vírgula)
+          <textarea name="jogadores" class="input" rows="4" placeholder="Ex: João, Pedro, Lucas..."></textarea>
+        </label>
+
+        <label>Jogadores reservas (separe por vírgula)
+          <textarea name="reservas" class="input" rows="3" placeholder="Ex: Mateus, Bruno, Caio..."></textarea>
+        </label>
+
         <div class="form-actions">
           <button type="button" class="btn" data-close="#modalTime">Cancelar</button>
           <button class="btn primary" type="submit">Salvar</button>
@@ -408,6 +423,35 @@
           <button class="btn primary" type="submit">Salvar</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Completar dados dos associados vinculados ao time -->
+  <div class="modal" id="modalCompletar">
+    <div class="modal-content">
+      <div class="modal-head">
+        <h3>Completar dados dos associados</h3>
+        <button class="icon close" data-close="#modalCompletar"><span class="material-symbols-rounded">close</span></button>
+      </div>
+      <div class="small" id="completarInfo">Preencha telefone, posição, status e mensalidade dos membros deste time.</div>
+      <div class="table-wrap" style="margin-top:10px">
+        <table class="table" id="tabelaCompletar">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Telefone</th>
+              <th>Posição</th>
+              <th>Status</th>
+              <th>Mensalidade</th>
+            </tr>
+          </thead>
+          <tbody><!-- via JS --></tbody>
+        </table>
+      </div>
+      <div class="form-actions" style="margin-top:10px;display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn" data-close="#modalCompletar">Fechar</button>
+        <button class="btn primary" id="btnSalvarCompletar">Salvar alterações</button>
+      </div>
     </div>
   </div>
 
