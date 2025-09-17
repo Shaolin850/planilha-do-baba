@@ -1,0 +1,418 @@
+
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Planilhas de Futebol — Painel Profissional</title>
+  <link rel="stylesheet" href="styles.css"/>
+
+  <!-- Fontes e ícones -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Material+Symbols+Rounded" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+
+  <!-- jsPDF + html2canvas para PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="logo">⚽</span>
+      <div>
+        <h1>Planilhas de Futebol</h1>
+        <p class="subtitle">Gestão de associados, times, reservas e caixa</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="clock">
+        <span id="currentDate"></span>
+        <span id="currentTime" class="time"></span>
+      </div>
+      <div class="export-actions">
+        <button id="btnExportPDF" class="btn primary">
+          <span class="material-symbols-rounded">picture_as_pdf</span> PDF
+        </button>
+        <button id="btnShareWhatsApp" class="btn success">
+          <span class="material-symbols-rounded">share</span> WhatsApp
+        </button>
+        <button id="btnShareNative" class="btn">
+          <span class="material-symbols-rounded">ios_share</span> Compartilhar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-target="#dashboard">
+      <span class="material-symbols-rounded">dashboard</span> Dashboard
+    </button>
+    <button class="tab" data-target="#associados">
+      <span class="material-symbols-rounded">groups</span> Associados
+    </button>
+    <button class="tab" data-target="#times">
+      <span class="material-symbols-rounded">sports_soccer</span> Times
+    </button>
+    <button class="tab" data-target="#reservas">
+      <span class="material-symbols-rounded">event</span> Reservas
+    </button>
+    <button class="tab" data-target="#financeiro">
+      <span class="material-symbols-rounded">account_balance_wallet</span> Caixa
+    </button>
+    <button class="tab" data-target="#relatorios">
+      <span class="material-symbols-rounded">analytics</span> Relatórios
+    </button>
+    <div class="spacer"></div>
+    <button id="btnReset" class="tab danger">
+      <span class="material-symbols-rounded">restart_alt</span> Resetar Dados
+    </button>
+  </nav>
+
+  <main id="pdfArea" class="container">
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="panel active">
+      <div class="grid-3">
+        <div class="card kpi">
+          <div class="kpi-head">
+            <span class="material-symbols-rounded">groups</span>
+            Associados ativos
+          </div>
+          <div class="kpi-value" id="kpiAssociados">0</div>
+          <div class="kpi-foot" id="kpiAssociadosPendentes">Pendentes: 0</div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-head">
+            <span class="material-symbols-rounded">sports_soccer</span>
+            Partidas de hoje
+          </div>
+          <div class="kpi-value" id="kpiPartidas">0</div>
+          <div class="kpi-foot" id="kpiReservasHoje">Reservas hoje: 0</div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-head">
+            <span class="material-symbols-rounded">account_balance_wallet</span>
+            Caixa (saldo atual)
+          </div>
+          <div class="kpi-value" id="kpiSaldoAtual">R$ 0,00</div>
+          <div class="kpi-foot" id="kpiEntradaDia">Entrada no dia: R$ 0,00</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Atalhos Rápidos</h3>
+        </div>
+        <div class="quick-actions">
+          <button class="btn small" data-open="#modalAssociado"><span class="material-symbols-rounded">person_add</span> Novo Associado</button>
+          <button class="btn small" data-open="#modalTime"><span class="material-symbols-rounded">add</span> Novo Time</button>
+          <button class="btn small" data-open="#modalReserva"><span class="material-symbols-rounded">event_available</span> Nova Reserva</button>
+          <button class="btn small" data-open="#modalLancamento"><span class="material-symbols-rounded">payments</span> Lançar Pagamento</button>
+          <button class="btn small outline" id="btnGerarResumo"><span class="material-symbols-rounded">description</span> Gerar Resumo</button>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head">
+            <h3>Observações</h3>
+            <button id="btnSalvarObs" class="btn small"><span class="material-symbols-rounded">save</span> Salvar</button>
+          </div>
+          <textarea id="observacoes" rows="10" placeholder="Observações gerais do dia, disciplina, escala, condições do campo..."></textarea>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Resumo do Dia</h3>
+          </div>
+          <div id="resumoDia" class="resumo"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ASSOCIADOS -->
+    <section id="associados" class="panel">
+      <div class="card">
+        <div class="card-head">
+          <h3>Associados</h3>
+          <div class="card-actions">
+            <input type="text" id="filtroAssociados" class="input" placeholder="Buscar por nome, posição ou telefone...">
+            <button class="btn" data-open="#modalAssociado"><span class="material-symbols-rounded">person_add</span> Adicionar</button>
+            <button class="btn outline" id="btnExportAssociadosCSV"><span class="material-symbols-rounded">table</span> Exportar CSV</button>
+          </div>
+        </div>
+
+        <div id="emptyAssociados" class="empty hidden">
+          <span class="material-symbols-rounded">info</span>
+          <p>Nenhum associado cadastrado.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table" id="tabelaAssociados">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Posição</th>
+                <th>Status</th>
+                <th>Mensalidade</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody><!-- via JS --></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TIMES -->
+    <section id="times" class="panel">
+      <div class="card">
+        <div class="card-head">
+          <h3>Times</h3>
+          <div class="card-actions">
+            <button class="btn" data-open="#modalTime"><span class="material-symbols-rounded">add</span> Novo Time</button>
+          </div>
+        </div>
+
+        <div id="emptyTimes" class="empty hidden">
+          <span class="material-symbols-rounded">info</span>
+          <p>Nenhum time cadastrado.</p>
+        </div>
+
+        <div class="grid-2" id="listaTimes"><!-- via JS --></div>
+      </div>
+    </section>
+
+    <!-- RESERVAS -->
+    <section id="reservas" class="panel">
+      <div class="card">
+        <div class="card-head">
+          <h3>Reservas</h3>
+          <div class="card-actions">
+            <button class="btn" data-open="#modalReserva"><span class="material-symbols-rounded">event_available</span> Nova Reserva</button>
+          </div>
+        </div>
+
+        <div id="emptyReservas" class="empty hidden">
+          <span class="material-symbols-rounded">info</span>
+          <p>Nenhuma reserva cadastrada.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table" id="tabelaReservas">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Hora</th>
+                <th>Quadra/Campo</th>
+                <th>Time</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody><!-- via JS --></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINANCEIRO -->
+    <section id="financeiro" class="panel">
+      <div class="card">
+        <div class="card-head">
+          <h3>Caixa</h3>
+          <div class="card-actions">
+            <button class="btn" data-open="#modalLancamento"><span class="material-symbols-rounded">payments</span> Lançar Pagamento</button>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card subtle">
+            <div class="stat">
+              <span class="label">Saldo Anterior</span>
+              <span id="saldoAnterior" class="value">R$ 0,00</span>
+            </div>
+            <div class="stat">
+              <span class="label">Entrada do Dia</span>
+              <span id="entradaDia" class="value">R$ 0,00</span>
+            </div>
+          </div>
+          <div class="card subtle">
+            <div class="stat">
+              <span class="label">Despesas do Dia</span>
+              <span id="despesaDia" class="value">R$ 0,00</span>
+            </div>
+            <div class="stat">
+              <span class="label">Pagamentos Pendentes</span>
+              <span id="pendentesDia" class="value">R$ 0,00</span>
+            </div>
+          </div>
+          <div class="card subtle">
+            <div class="stat">
+              <span class="label">Saldo Atual</span>
+              <span id="saldoAtual" class="value strong">R$ 0,00</span>
+            </div>
+            <div class="stat">
+              <span class="label">Última Atualização</span>
+              <span id="ultimaAtualizacao" class="value small">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="emptyLanc" class="empty hidden">
+          <span class="material-symbols-rounded">info</span>
+          <p>Nenhum lançamento no caixa.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table" id="tabelaLancamentos">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Responsável</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody><!-- via JS --></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- RELATÓRIOS -->
+    <section id="relatorios" class="panel">
+      <div class="card">
+        <div class="card-head">
+          <h3>Relatórios</h3>
+          <div class="card-actions">
+            <input type="month" id="mesRelatorio" class="input">
+            <button class="btn outline" id="btnGerarRelatorio"><span class="material-symbols-rounded">refresh</span> Atualizar</button>
+            <button class="btn" id="btnExportRelatorioPDF"><span class="material-symbols-rounded">picture_as_pdf</span> PDF</button>
+          </div>
+        </div>
+        <div id="relatorioConteudo" class="relatorio">
+          <!-- via JS -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAIS -->
+  <div class="modal" id="modalAssociado">
+    <div class="modal-content">
+      <div class="modal-head">
+        <h3>Novo/Editar Associado</h3>
+        <button class="icon close" data-close="#modalAssociado"><span class="material-symbols-rounded">close</span></button>
+      </div>
+      <form id="formAssociado" class="form-grid" autocomplete="off">
+        <input type="hidden" name="id" />
+        <label>Nome<input name="nome" class="input" required inputmode="text"/></label>
+        <label>Telefone<input name="telefone" class="input" placeholder="(xx) xxxxx-xxxx" inputmode="tel"/></label>
+        <label>Posição<select name="posicao" class="input">
+          <option value="Goleiro">Goleiro</option>
+          <option value="Zagueiro">Zagueiro</option>
+          <option value="Lateral">Lateral</option>
+          <option value="Meia">Meia</option>
+          <option value="Atacante">Atacante</option>
+          <option value="Outro">Outro</option>
+        </select></label>
+        <label>Status<select name="status" class="input">
+          <option value="Ativo">Ativo</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Inativo">Inativo</option>
+        </select></label>
+        <label>Mensalidade (R$)<input name="mensalidade" class="input" type="number" min="0" step="0.01" inputmode="decimal"/></label>
+
+        <div class="form-actions">
+          <button type="button" class="btn" data-close="#modalAssociado">Cancelar</button>
+          <button class="btn primary" type="submit">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="modalTime">
+    <div class="modal-content">
+      <div class="modal-head">
+        <h3>Novo/Editar Time</h3>
+        <button class="icon close" data-close="#modalTime"><span class="material-symbols-rounded">close</span></button>
+      </div>
+      <form id="formTime" class="form-grid" autocomplete="off">
+        <input type="hidden" name="id"/>
+        <label>Nome do Time<input name="nome" class="input" required/></label>
+        <label>Categoria<select name="categoria" class="input">
+          <option value="Livre">Livre</option>
+          <option value="Veteranos">Veteranos</option>
+          <option value="Feminino">Feminino</option>
+          <option value="Sub-17">Sub-17</option>
+        </select></label>
+        <label>Cor do Uniforme<input name="cor" class="input" placeholder="Ex: Azul/Branco"/></label>
+        <label>Jogadores (separe por vírgula)<textarea name="jogadores" class="input" rows="4" placeholder="Ex: João, Pedro, Lucas..."></textarea></label>
+        <div class="form-actions">
+          <button type="button" class="btn" data-close="#modalTime">Cancelar</button>
+          <button class="btn primary" type="submit">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="modalReserva">
+    <div class="modal-content">
+      <div class="modal-head">
+        <h3>Nova/Editar Reserva</h3>
+        <button class="icon close" data-close="#modalReserva"><span class="material-symbols-rounded">close</span></button>
+      </div>
+      <form id="formReserva" class="form-grid" autocomplete="off">
+        <input type="hidden" name="id"/>
+        <label>Data<input name="data" type="date" class="input" required/></label>
+        <label>Hora<input name="hora" type="time" class="input" required/></label>
+        <label>Quadra/Campo<input name="local" class="input" placeholder="Campo A / Quadra 2" required/></label>
+        <label>Time<select name="time" class="input" id="selectTimeReserva"></select></label>
+        <label>Valor (R$)<input name="valor" class="input" type="number" min="0" step="0.01" inputmode="decimal"/></label>
+        <label>Status<select name="status" class="input">
+          <option value="Confirmada">Confirmada</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Cancelada">Cancelada</option>
+        </select></label>
+        <div class="form-actions">
+          <button type="button" class="btn" data-close="#modalReserva">Cancelar</button>
+          <button class="btn primary" type="submit">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="modalLancamento">
+    <div class="modal-content">
+      <div class="modal-head">
+        <h3>Novo Lançamento (Caixa)</h3>
+        <button class="icon close" data-close="#modalLancamento"><span class="material-symbols-rounded">close</span></button>
+      </div>
+      <form id="formLancamento" class="form-grid" autocomplete="off">
+        <input type="hidden" name="id"/>
+        <label>Data<input name="data" type="date" class="input" required/></label>
+        <label>Descrição<input name="descricao" class="input" placeholder="Mensalidade, taxa de campo, água..." required/></label>
+        <label>Tipo<select name="tipo" class="input">
+          <option value="Entrada">Entrada</option>
+          <option value="Despesa">Despesa</option>
+          <option value="Pendente">Pendente</option>
+        </select></label>
+        <label>Valor (R$)<input name="valor" class="input" type="number" min="0" step="0.01" required inputmode="decimal"/></label>
+        <label>Responsável<input name="responsavel" class="input" placeholder="Nome do responsável"/></label>
+        <div class="form-actions">
+          <button type="button" class="btn" data-close="#modalLancamento">Cancelar</button>
+          <button class="btn primary" type="submit">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <p>© <span id="year"></span> Planilhas de Futebol — Profissional.</p>
+  </footer>
+</body>
+</html>
